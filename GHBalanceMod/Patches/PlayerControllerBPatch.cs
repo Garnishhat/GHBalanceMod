@@ -19,21 +19,18 @@ namespace GHBalanceMod.Patches {
         [HarmonyPatch("Update")]
         [HarmonyPostfix]
         public static void ChangeSpeed(ref float ___sprintTime) {
-                if (StartOfRound.Instance.connectedPlayersAmount > 0) {
-                    for (int i = 0; i < StartOfRound.Instance.connectedPlayersAmount; i++) {
-                        if (2.0f + (PlayerNotesPatch.personalSuccessDays[i] * 0.25f) + (PlayerNotesPatch.groupSuccessDays * 0.25f) < 2.0f) {
-                        StartOfRound.Instance.allPlayerScripts[i].sprintTime = 2.0f;
-                    } else {
-                        StartOfRound.Instance.allPlayerScripts[i].sprintTime = 2.0f + (PlayerNotesPatch.personalSuccessDays[i] * 0.25f) + (PlayerNotesPatch.groupSuccessDays * 0.25f);
-                        }
-                    }
-                } else {
-                    if (2.0f + (PlayerNotesPatch.groupSuccessDays * 0.25f) < 2.0f) {
-                        ___sprintTime = 2.0f;
-                    } else {
-                    ___sprintTime = 2.0f + (PlayerNotesPatch.groupSuccessDays * 0.25f);
+            if (StartOfRound.Instance.connectedPlayersAmount > 0) {
+                for (int i = 0; i < StartOfRound.Instance.connectedPlayersAmount; i++) {
+                    float sprint = Mathf.Max(2.0f + (PlayerNotesPatch.personalSuccessDays[i] * 0.25f) + (PlayerNotesPatch.groupSuccessDays * 0.25f), 2.0f);
+                    StartOfRound.Instance.allPlayerScripts[i].sprintTime = sprint;
                 }
-            }            
+            } else {
+                ___sprintTime = Mathf.Max(2.0f + (PlayerNotesPatch.groupSuccessDays * 0.25f), 2.0f);
+            }
+
+            /*
+             
+             */
         }
     }
 }

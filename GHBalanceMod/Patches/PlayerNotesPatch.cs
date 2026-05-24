@@ -15,7 +15,7 @@ namespace GHBalanceMod.Patches {
 
         public static int onlinePeoples = StartOfRound.Instance.allPlayerScripts.Length;
         public static int[] personalSuccessDays = new int[onlinePeoples];
-        public static float groupSuccessDays = 0;
+        public static int groupSuccessDays = 0;
         static string SetNumbers(float x) {
             string core = " (At " + x + "% Vanilla)";
             return core;
