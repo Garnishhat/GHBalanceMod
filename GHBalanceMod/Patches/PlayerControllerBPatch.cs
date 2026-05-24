@@ -13,24 +13,20 @@ using UnityEngine;
 using UnityEngine.PlayerLoop;
 
 namespace GHBalanceMod.Patches {
-    
     [HarmonyPatch(typeof(PlayerControllerB))]
     internal class PlayerControllerBPatch {
         [HarmonyPatch("Update")]
         [HarmonyPostfix]
-        public static void ChangeSpeed(ref float ___sprintTime) {
+        public static void ChangeStats(ref float ___sprintTime, ref int ___health) {
             if (StartOfRound.Instance.connectedPlayersAmount > 0) {
                 for (int i = 0; i < StartOfRound.Instance.connectedPlayersAmount; i++) {
+                    
                     float sprint = Mathf.Max(2.0f + (PlayerNotesPatch.personalSuccessDays[i] * 0.25f) + (PlayerNotesPatch.groupSuccessDays * 0.25f), 2.0f);
                     StartOfRound.Instance.allPlayerScripts[i].sprintTime = sprint;
                 }
             } else {
                 ___sprintTime = Mathf.Max(2.0f + (PlayerNotesPatch.groupSuccessDays * 0.25f), 2.0f);
             }
-
-            /*
-             
-             */
         }
     }
 }

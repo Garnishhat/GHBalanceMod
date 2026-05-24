@@ -16,7 +16,7 @@ namespace GHBalanceMod {
     public class BalanceModBase : BaseUnityPlugin {
         private const string modGUID = "GHBalanceMod";
         private const string modName = "GH Balance Mod";
-        private const string modVersion = "5.1.0";
+        private const string modVersion = "5.2.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         
@@ -36,8 +36,8 @@ namespace GHBalanceMod {
             harmony.PatchAll(typeof(BalanceModBase));
             // Initializes the default value
             harmony.PatchAll(typeof(PlayerControllerBPatch));
-            // Performs most of the logic behind the player movement
             harmony.PatchAll(typeof(PlayerNotesPatch));
+            harmony.PatchAll(typeof(PlayerDamage));
             
         }
 
