@@ -96,7 +96,6 @@ namespace GHBalanceMod.Patches {
                     ulong[] noAccolades = new ulong[onlinePeoples - 2];
 
                     for (int j = 0; j < onlinePeoples; j++) {
-                        if (scripts[i].actualClientId != scripts[j].actualClientId) {
                             if (stats[i].damageTaken > stats[j].damageTaken) {
                                 count++;
                                 if (count == onlinePeoples - 1) {
@@ -134,7 +133,6 @@ namespace GHBalanceMod.Patches {
                                 scripts[i].actualClientId != 0) {
                                 noAccolades[i] = scripts[i].actualClientId;
                             }
-                        }
                     }
 
 
