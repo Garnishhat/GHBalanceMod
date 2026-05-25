@@ -96,7 +96,7 @@ namespace GHBalanceMod.Patches {
                     ulong[] noAccolades = new ulong[onlinePeoples - 2];
 
                     for (int j = 0; j < onlinePeoples; j++) {
-                            if (stats[i].damageTaken > stats[j].damageTaken) {
+                            if (stats[i].damageTaken > stats[j].damageTaken && i != j) {
                                 count++;
                                 if (count == onlinePeoples - 1) {
                                     mostInjured = scripts[i].actualClientId;
@@ -104,7 +104,7 @@ namespace GHBalanceMod.Patches {
                                 }
                             }
 
-                            if (stats[i].profitable > stats[j].profitable && stats[i].stepsTaken > stats[j].stepsTaken) {
+                            if (stats[i].profitable > stats[j].profitable && stats[i].stepsTaken > stats[j].stepsTaken && i != j) {
                                 count1++;
                                 if (count1 == onlinePeoples - 1) {
                                     mostProfitable = scripts[i].actualClientId;
@@ -112,7 +112,7 @@ namespace GHBalanceMod.Patches {
                                 }
                             }
 
-                            if (stats[j].stepsTaken > stats[i].stepsTaken) {
+                            if (stats[j].stepsTaken > stats[i].stepsTaken && i != j) {
                                 count2++;
                                 if (count2 == onlinePeoples - 1) {
                                     mostLazy = scripts[i].actualClientId;
@@ -120,7 +120,7 @@ namespace GHBalanceMod.Patches {
                                 }
                             }
 
-                            if (stats[i].turnAmount > stats[j].turnAmount) {
+                            if (stats[i].turnAmount > stats[j].turnAmount && i != j) {
                                 count3++;
                                 if (count3 == onlinePeoples - 1) {
                                     mostParanoid = scripts[i].actualClientId;
