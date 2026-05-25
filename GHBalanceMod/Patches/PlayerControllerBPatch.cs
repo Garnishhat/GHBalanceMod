@@ -17,10 +17,10 @@ namespace GHBalanceMod.Patches {
     internal class PlayerControllerBPatch {
         [HarmonyPatch("Update")]
         [HarmonyPostfix]
-        public static void ChangeStats(ref float ___sprintTime, ref int ___health) {
+        public static void ChangeStats(ref float ___sprintTime) {
             if (StartOfRound.Instance.connectedPlayersAmount > 0) {
                 for (int i = 0; i < StartOfRound.Instance.connectedPlayersAmount; i++) {
-                    
+
                     float sprint = Mathf.Max(2.0f + (PlayerNotesPatch.personalSuccessDays[i] * 0.25f) + (PlayerNotesPatch.groupSuccessDays * 0.25f), 2.0f);
                     StartOfRound.Instance.allPlayerScripts[i].sprintTime = sprint;
                 }

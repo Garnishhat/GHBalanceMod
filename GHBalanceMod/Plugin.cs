@@ -11,12 +11,10 @@ using System.Threading.Tasks;
 namespace GHBalanceMod {
     
     [BepInPlugin(modGUID, modName, modVersion)]
-
-
     public class BalanceModBase : BaseUnityPlugin {
         private const string modGUID = "GHBalanceMod";
         private const string modName = "GH Balance Mod";
-        private const string modVersion = "5.2.0";
+        private const string modVersion = "5.3.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         

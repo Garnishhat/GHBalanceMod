@@ -15,7 +15,7 @@ namespace GHBalanceMod.Patches {
         public static int[] damageTaken = new int[PlayerNotesPatch.onlinePeoples];
 
         [HarmonyPatch("DamagePlayer")]
-            [HarmonyPrefix]
+        [HarmonyPrefix]
         public static void DealDamage(int damageNumber, bool hasDamageSFX = true, bool callRPC = true, CauseOfDeath causeOfDeath = CauseOfDeath.Unknown, int deathAnimation = 0, bool fallDamage = false, Vector3 force = default) {
             for (int i = 0; i < PlayerNotesPatch.onlinePeoples; i++) {
                 damageTaken[i] += damageNumber;
@@ -24,7 +24,7 @@ namespace GHBalanceMod.Patches {
                 PlayerControllerB scripts = StartOfRound.Instance.allPlayerScripts[i];
                 
                 int max = Mathf.Max(40 + (PlayerNotesPatch.personalSuccessDays[i] * 5) + (PlayerNotesPatch.groupSuccessDays * 5), 40);
-                
+
                 if (!stats.isActivePlayer || scripts.isPlayerDead || !scripts.AllowPlayerDeath()) {
                     return;
                 }
