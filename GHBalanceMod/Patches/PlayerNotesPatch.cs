@@ -18,16 +18,8 @@ namespace GHBalanceMod.Patches {
         public static PlayerStats[] stats = StartOfRound.Instance.gameStats.allPlayerStats;
         public static PlayerControllerB[] scripts = StartOfRound.Instance.allPlayerScripts;
         static string SetNumbers(int x) {
-            string core = " (Max Stats: " + x + " (Health, Stamina))";
+            string core = " (Max Stats: " + x + "%)";
             return core;
-        }
-
-        static int LessBracketCompetition(int mainTest, int everyoneElse) {
-            if (everyoneElse > mainTest) {
-                return mainTest;
-            } else {
-                return everyoneElse;
-            }
         }
 
         [HarmonyPatch("WritePlayerNotes")]
@@ -53,27 +45,24 @@ namespace GHBalanceMod.Patches {
             bool justSold = TimeOfDay.Instance.daysUntilDeadline == 3 && !firstDay;
 
             int upOneSoloHealth = Mathf.Max(40 + (groupSuccessDays + 1 * 5), 40);
-            int upTwoSoloHealth = Mathf.Max(40 + (groupSuccessDays + 2 * 5), 40);
+            int upThreeSoloHealth = Mathf.Max(40 + (groupSuccessDays + 3 * 5), 40);
             int downOneSoloHealth = Mathf.Max(40 + (groupSuccessDays - 1 * 5), 40); // if 100% health, then... what. Okay...
 
+            // Number count also doesn't check to see if it's the actual amount you know, since there's a ton of different combinations and stuff
+
             if (!justSold) {
-                if (highlyProfitable) {
-                    groupSuccessDays += 2;
-                    if (StartOfRound.Instance.connectedPlayersAmount == 0) {
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("REALLY Profitable!" + SetNumbers(upTwoSoloHealth));
-                    }
-                }
                 if (profitable) {
-                    groupSuccessDays++;
-                    if (StartOfRound.Instance.connectedPlayersAmount == 0) {
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Profitable!" + SetNumbers(upOneSoloHealth));
+                    if (highlyProfitable) {
+                        groupSuccessDays += 3;
+                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("REALLY Profitable!" + SetNumbers(upThreeSoloHealth));
+                    } else {
+                        groupSuccessDays++;
+                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Profitable!" + SetNumbers(upOneSoloHealth));       
                     }
                 } else {
                     groupSuccessDays--;
-                    if (StartOfRound.Instance.connectedPlayersAmount == 0) {
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Failed." + SetNumbers(downOneSoloHealth));
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Base quota is: " + GarnishScrapCount);
-                    }
+                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Failed." + SetNumbers(downOneSoloHealth));
+                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Base quota is: " + GarnishScrapCount);
                 }
             }
 
@@ -87,12 +76,12 @@ namespace GHBalanceMod.Patches {
                         StartOfRound.Instance.allPlayerScripts[i].isPlayerDead ||
                         StartOfRound.Instance.allPlayerScripts[i].isPlayerControlled;
                     // If min doesn't work then max is going to be next but with reverse order
-                    int downFourHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 4) * 5, 40);
-                    int downTwoHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 2) * 5, 40);
-                    int downOneHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 1) * 5, 40);
-                    int neutralHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] * 5), 40);
-                    int upOneHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] + 1) * 5, 40);
-                    int upTwoHealth = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] + 2) * 5, 40);
+
+                    int upFour = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] + 4) * 5, 40);
+                    int downOne = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 1) * 5, 40);
+                    int upOne = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] + 1) * 5, 40);
+                    int downThree = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 3) * 5, 40);
+                    int downFive = Mathf.Max(40 + (groupSuccessDays * 5) + (personalSuccessDays[i] - 5) * 5, 40);
 
                     int count = 0;
                     int count1 = 0;
@@ -153,29 +142,22 @@ namespace GHBalanceMod.Patches {
                         if (stats[i].isActivePlayer) {
                             if (scripts[i].actualClientId == mostProfitable) {
                                 if (lifeCheck) {
-                                    personalSuccessDays[i] += 3;
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Profitable!" + SetNumbers(upTwoHealth));
+                                    personalSuccessDays[i] += 4;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Profitable!" + SetNumbers(upFour));
                                 } else {
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Self sacrificed." + SetNumbers(neutralHealth));
+                                    personalSuccessDays[i] -= 1;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Self sacrificed." + SetNumbers(downOne));
                                 }
                             }
 
                             if (scripts[i].actualClientId == mostLazy) {
                                 if (lifeCheck) {
-                                    personalSuccessDays[i] -= 2;
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Laziest!" + SetNumbers(downTwoHealth));
+                                    personalSuccessDays[i] -= 3;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Laziest!" + SetNumbers(downThree));
                                 } else {
-                                    personalSuccessDays[i] -= 4;
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Was too lazy." + SetNumbers(downFourHealth));
+                                    personalSuccessDays[i] -= 5;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Was too lazy." + SetNumbers(downFive));
                                 }
-                            }
-
-                            if (lifeCheck) {
-                                personalSuccessDays[i] += 1;
-                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Lived!" + SetNumbers(upOneHealth));
-                            } else {
-                                personalSuccessDays[i] -= 1;
-                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Died." + SetNumbers(downOneHealth));
                             }
 
                             if (scripts[i].actualClientId == mostParanoid) {
@@ -186,6 +168,16 @@ namespace GHBalanceMod.Patches {
                                 }
                             }
 
+                            if (scripts[i].actualClientId == noAccolades[j]) {
+                                if (lifeCheck) {
+                                    personalSuccessDays[i] += 1;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Lived!"+ SetNumbers(upOne));
+                                } else {
+                                    personalSuccessDays[i] += 1;
+                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Died!" + SetNumbers(downOne));
+                                }
+                            }
+
                             if (scripts[i].actualClientId == mostInjured) {
                                 if (lifeCheck) {
                                     StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most injured!");
@@ -193,6 +185,8 @@ namespace GHBalanceMod.Patches {
                                     StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Died from injuries.");
                                 }
                             }
+
+
 
                         }
 
