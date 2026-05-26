@@ -14,7 +14,7 @@ namespace GHBalanceMod {
     public class BalanceModBase : BaseUnityPlugin {
         private const string modGUID = "GHBalanceMod";
         private const string modName = "GH Balance Mod";
-        private const string modVersion = "5.3.1";
+        private const string modVersion = "5.4.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         
@@ -22,24 +22,17 @@ namespace GHBalanceMod {
 
         internal ManualLogSource LOGGER;
 
-
         void Awake() {
             if (Instance == null) {
                 Instance = this;
             }
-            LOGGER = BepInEx.Logging.Logger.CreateLogSource(modGUID);
 
+            LOGGER = BepInEx.Logging.Logger.CreateLogSource(modGUID);
             LOGGER.LogInfo("GH Balanced has awoken!!");
             
             harmony.PatchAll(typeof(BalanceModBase));
             // Initializes the default value
-            harmony.PatchAll(typeof(PlayerControllerBPatch));
-            harmony.PatchAll(typeof(PlayerNotesPatch));
-            harmony.PatchAll(typeof(PlayerDamage));
-            
+            harmony.PatchAll(typeof(PlayerStatsPatch));
         }
-
-
-
     }
 }

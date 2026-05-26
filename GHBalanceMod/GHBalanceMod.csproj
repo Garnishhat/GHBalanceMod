@@ -31,48 +31,46 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Patches\PlayerControllerBPatch.cs" />
-    <Compile Include="Patches\PlayerDamage.cs" />
-    <Compile Include="Patches\PlayerNotesPatch.cs" />
+    <Compile Include="Patches\PlayerStatsPatch.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\0Harmony.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx, Version=5.4.23.5, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\BepInEx.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Netcode.Runtime, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Modded Lethal Company_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\..\..\Steam\steamapps\common\Modded Lethal Company\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
