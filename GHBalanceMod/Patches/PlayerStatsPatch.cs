@@ -1,116 +1,114 @@
 ﻿using BepInEx.Logging;
 using GameNetcodeStuff;
 using HarmonyLib;
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
-
 namespace GHBalanceMod.Patches {
-    internal class PlayerStatsPatch {
+    public class PlayerPersonalStats : MonoBehaviour {
+        public static int PersonalSuccessDays;
+        public static int RoundDamage;
 
-        public static int onlinePeoples = StartOfRound.Instance.allPlayerScripts.Length;
+        /*
+        Other things I'd love to add:
+        Jump height (With an upper cap to prevent insanity)
+        Movement speed (See previous statement)
+        Carry weight? (Heavy items get lighter the more you succeed?)
+         */
+
+        private PlayerControllerB playerController;
+        private void Awake() {
+            playerController = GetComponent<PlayerControllerB>();
+        }
+    }
+    public static class Group {
+        public static int TotalSuccessDays;
+    }
+    public static class PlayerStatsPatch {
+
+        public static string[] Best = new string[4];
+
         public static PlayerStats[] stats = StartOfRound.Instance.gameStats.allPlayerStats;
         public static PlayerControllerB[] scripts = StartOfRound.Instance.allPlayerScripts;
+
         static string SetNumbers(int x) {
-            string core = " (Max Stats: " + x + "%)";
+            string core = "(Max Stats: " + x + "%)";
             return core;
         }
-        
-        static int GroupSuccessDays(int added, bool display, bool reset) {
-            int groupSuccessDays = 0;
-            if (reset) {
-                groupSuccessDays = 0;
-                return groupSuccessDays;
-            } else if (display) {
-                return Mathf.Max(40 + (groupSuccessDays + added) * 5, 40);
-            } else if (added != 0) {
-                return groupSuccessDays += added;
-            } else {
-                return groupSuccessDays;
-            } 
-        }
-        static int PersonalSuccessDays(int added, int which, bool display, bool reset) {
-            int[] personalSuccessDays = new int[onlinePeoples];
-            if (reset) {
-                for (int i = 0; i < personalSuccessDays.Length; i++) {
-                    personalSuccessDays[i] = 0;
-                }
-                return personalSuccessDays[which];
-            } else if (display) {
-                return Mathf.Max(40 + (GroupSuccessDays(0, true, false) + (personalSuccessDays[which] - added)) * 5, 40);
-            } else if (added != 0) {
-                return personalSuccessDays[which] += added;
-            } else {
-                return personalSuccessDays[which];
-            }
-        }
-
-        static void ResetArray(int[] x) {
-
-        }
-
-        static void Log(string x) {
-            BepInEx.Logging.Logger.CreateLogSource("GHBalanceMod").LogInfo(x);
-        }
-
-        public static int[] damageTaken = new int[onlinePeoples];
 
         [HarmonyPatch(typeof(StartOfRound))]
         [HarmonyPatch("WritePlayerNotes")]
         [HarmonyPrefix]
         public static void WriteNotes() {
+            int AllOnlinePlayers = StartOfRound.Instance.allPlayerScripts.Length;
 
-
-            Log("String");
-
-            int trueDeadline;
-            switch (TimeOfDay.Instance.daysUntilDeadline) {
-                case 0: trueDeadline = 4; break;
-                case 1: trueDeadline = 3; break;
-                case 2: trueDeadline = 2; break;
-                case 3: trueDeadline = 1; break;
-                default: trueDeadline = 0; break;
-            }
-            int totalDays = TimeOfDay.Instance.timesFulfilledQuota * 4 + trueDeadline;
-            bool firstDay = totalDays == 1;
+            PlayerStats[] stats = StartOfRound.Instance.gameStats.allPlayerStats;
+            PlayerControllerB[] scripts = StartOfRound.Instance.allPlayerScripts;
 
             int GarnishScrapCount = TimeOfDay.Instance.profitQuota / 65; // (Minimum of 2)
-            int GarnishHighScrapCount = GarnishScrapCount * 2;
-
+            int GarnishHighScrapCount = GarnishScrapCount * GarnishScrapCount;
             bool profitable = StartOfRound.Instance.scrapCollectedLastRound >= GarnishScrapCount;
             bool highlyProfitable = StartOfRound.Instance.scrapCollectedLastRound >= GarnishHighScrapCount ||
-                StartOfRound.Instance.currentShipItemCount <= StartOfRound.Instance.scrapCollectedLastRound;
-            bool justSold = TimeOfDay.Instance.daysUntilDeadline == 3 && !firstDay;
-
-            int upOneSoloHealth = GroupSuccessDays(1, true, false);
-            int upThreeSoloHealth = GroupSuccessDays(3, true, false);
-            int downOneSoloHealth = GroupSuccessDays(-1, true, false); 
-            
+            StartOfRound.Instance.scrapCollectedLastRound >= 30;
             // Number count also doesn't check to see if it's the actual amount you know, since there's a ton of different combinations and stuff
 
-            if (!justSold) {
-                if (profitable) {
-                    if (highlyProfitable) {
-                        GroupSuccessDays(3, false, false);
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("REALLY Profitable!" + SetNumbers(upThreeSoloHealth));
-                    } else {
-                        GroupSuccessDays(1, false, false);
-                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Profitable!" + SetNumbers(upOneSoloHealth));
+
+
+            if (profitable) {
+                if (highlyProfitable) {
+                    if (StartOfRound.Instance.connectedPlayersAmount == 0) {
+                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("REALLY Profitable!");
                     }
+                    Group.TotalSuccessDays += 2;
                 } else {
-                    GroupSuccessDays(-1, false, false);
-                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Failed." + SetNumbers(downOneSoloHealth));
-                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Base quota is: " + GarnishScrapCount);
+                    if (StartOfRound.Instance.connectedPlayersAmount == 0) {
+                        StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Profitable!");
+                    }
+                    Group.TotalSuccessDays += 1;
                 }
+            } else {
+                if (StartOfRound.Instance.connectedPlayersAmount == 0) {
+                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Failed.");
+                    StartOfRound.Instance.gameStats.allPlayerStats[0].playerNotes.Add("Base quota is " + GarnishScrapCount + " items.");
+                }
+                Group.TotalSuccessDays -= 2;
             }
 
             if (StartOfRound.Instance.connectedPlayersAmount > 0) {
-                for (int i = 0; i < onlinePeoples; i++) {
+                int[] Steps = new int[StartOfRound.Instance.allPlayerScripts.Length];
+                int[] Profit = new int[StartOfRound.Instance.allPlayerScripts.Length];
+                int[] Turns = new int[StartOfRound.Instance.allPlayerScripts.Length];
+                int[] Damage = new int[StartOfRound.Instance.allPlayerScripts.Length];
+                for (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++) {
+                    Profit[i] = stats[i].profitable;
+                    Damage[i] = stats[i].damageTaken;
+                    Steps[i] = stats[i].stepsTaken;
+                    Turns[i] = stats[i].turnAmount;
+                }
+                for (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++) {
+                    if (Steps.Min() == stats[i].stepsTaken) {
+                        Best[1] = scripts[i].playerUsername;
+                    }
+                    if (Steps.Max() == stats[i].stepsTaken && Profit.Max() == stats[i].profitable) {
+                        Best[2] = scripts[i].playerUsername;
+                    }
+                    if (Damage.Max() == stats[i].damageTaken) {
+                        Best[3] = scripts[i].playerUsername;
+                    }
+                    if (Turns.Max() == stats[i].turnAmount) {
+                        Best[4] = scripts[i].playerUsername;
+                    }
+                }
+                for (int i = 0; i < AllOnlinePlayers; i++) {
 
                     bool lifeCheck = !StartOfRound.Instance.allPlayerScripts[i].isPlayerDead && !StartOfRound.Instance.allPlayerScripts[i].disconnectedMidGame;
 
@@ -118,204 +116,138 @@ namespace GHBalanceMod.Patches {
                         StartOfRound.Instance.allPlayerScripts[i].disconnectedMidGame ||
                         StartOfRound.Instance.allPlayerScripts[i].isPlayerDead ||
                         StartOfRound.Instance.allPlayerScripts[i].isPlayerControlled;
-                    // If min doesn't work then max is going to be next but with reverse order
-                    int upFour = PersonalSuccessDays(4, i, true, false);
-                    int downOne = PersonalSuccessDays(-1, i, true, false);
-                    int upOne = PersonalSuccessDays(1, i, true, false);
-                    int downThree = PersonalSuccessDays(-3, i, true, false);
-                    int downFive = PersonalSuccessDays(-5, i, true, false);
 
-                    int count = 0;
-                    int count1 = 0;
-                    int count2 = 0;
-                    int count3 = 0;
-
-                    ulong mostInjured = 0;
-                    ulong mostLazy = 0;
-                    ulong mostParanoid = 0;
-                    ulong mostProfitable = 0;
-
-                    ulong[] noAccolades = new ulong[onlinePeoples - 2];
-
-                    for (int j = 0; j < onlinePeoples; j++) {
-                        if (stats[i].damageTaken > stats[j].damageTaken && i != j) {
-                            count++;
-                            if (count == onlinePeoples - 1) {
-                                mostInjured = scripts[i].actualClientId;
-                                count = 0;
+                    if (stats[i].isActivePlayer) {
+                        
+                        if (scripts[i].playerUsername == Best[1] && scripts[i].playerUsername != Best[2]) {
+                            if (lifeCheck) {
+                                PlayerPersonalStats.PersonalSuccessDays -= 4;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Laziest!");
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
+                                Best[1] = "";
+                            } else {
+                                PlayerPersonalStats.PersonalSuccessDays -= 5;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Wasn't too careful.");
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
+                                Best[1] = "";
                             }
                         }
 
-                        if (stats[i].profitable > stats[j].profitable && stats[i].stepsTaken > stats[j].stepsTaken && i != j) {
-                            count1++;
-                            if (count1 == onlinePeoples - 1) {
-                                mostProfitable = scripts[i].actualClientId;
-                                count1 = 0;
+                        if (scripts[i].playerUsername == Best[2] && scripts[i].playerUsername != Best[1]) {
+                            if (lifeCheck) {
+                                PlayerPersonalStats.PersonalSuccessDays += 4;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most Profitable!");
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
+                                Best[2] = "";
+                            } else {
+                                PlayerPersonalStats.PersonalSuccessDays -= 1;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Gave their life for the cause.");
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
+                                Best[2] = "";
                             }
                         }
 
-                        if (stats[j].stepsTaken > stats[i].stepsTaken && i != j) {
-                            count2++;
-                            if (count2 == onlinePeoples - 1) {
-                                mostLazy = scripts[i].actualClientId;
-                                count2 = 0;
+                        if (scripts[i].playerUsername != Best[2] || scripts[i].playerUsername != Best[1]) {
+                            if (lifeCheck) {
+                                PlayerPersonalStats.PersonalSuccessDays += 1;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
+                            } else {
+                                PlayerPersonalStats.PersonalSuccessDays -= 1;
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add(SetNumbers(Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40)));
                             }
                         }
 
-                        if (stats[i].turnAmount > stats[j].turnAmount && i != j) {
-                            count3++;
-                            if (count3 == onlinePeoples - 1) {
-                                mostParanoid = scripts[i].actualClientId;
-                                count3 = 0;
+                        if (scripts[i].playerUsername == Best[3]) {
+                            if (lifeCheck) {
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most injured!");
+                                Best[3] = "";
+                            } else {
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Gave in to their injuries.");
+                                Best[3] = "";
                             }
                         }
 
-                        if (scripts[i].actualClientId != mostProfitable &&
-                            scripts[i].actualClientId != mostLazy) {
-                            noAccolades[i] = scripts[i].actualClientId;
+                        if (scripts[i].playerUsername == Best[4]) {
+                            if (lifeCheck) {
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Wariest!");
+                                Best[4] = "";
+                            } else {
+                                StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most clueless.");
+                                Best[4] = "";
+                            }
                         }
                     }
-
-
-                    for (int j = 0; j < onlinePeoples; j++) {
-                        if (stats[i].isActivePlayer) {
-                            if (scripts[i].actualClientId == mostProfitable) {
-                                if (lifeCheck) {
-                                    PersonalSuccessDays(4, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Profitable!" + SetNumbers(upFour));
-                                } else {
-                                    PersonalSuccessDays(-1, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Self sacrificed." + SetNumbers(downOne));
-                                }
-                            }
-
-                            if (scripts[i].actualClientId == mostLazy) {
-                                if (lifeCheck) {
-                                    PersonalSuccessDays(-3, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Laziest!" + SetNumbers(downThree));
-                                } else {
-                                    PersonalSuccessDays(-5, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Was too lazy." + SetNumbers(downFive));
-                                }
-                            }
-
-                            if (scripts[i].actualClientId == mostParanoid) {
-                                if (lifeCheck) {
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Wariest!");
-                                } else {
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most clueless.");
-                                }
-                            }
-
-                            if (scripts[i].actualClientId == noAccolades[j]) {
-                                if (lifeCheck) {
-                                    PersonalSuccessDays(1, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Lived!" + SetNumbers(upOne));
-                                } else {
-                                    PersonalSuccessDays(-1, i, false, false);
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Died!" + SetNumbers(downOne));
-                                }
-                            }
-
-                            if (scripts[i].actualClientId == mostInjured) {
-                                if (lifeCheck) {
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Most injured!");
-                                } else {
-                                    StartOfRound.Instance.gameStats.allPlayerStats[i].playerNotes.Add("Died from injuries.");
-                                }
-                            }
-                        }
-
-                    }
                 }
-                for (int i = 0; i < onlinePeoples; i++) {
-                    StartOfRound.Instance.allPlayerScripts[i].sprintTime = PersonalSuccessDays(0, i, false, false);
-                }
-            } else {
-                for (int i = 0; i < onlinePeoples; i++) {
-                    StartOfRound.Instance.allPlayerScripts[i].sprintTime = GroupSuccessDays(0, false, false);
-                }
-            }
-        }
-
-
-        [HarmonyPatch(typeof(StartOfRound))]
-        [HarmonyPatch("ResetStats")]
-        [HarmonyPostfix]
-        public static void Clear() {
-            GroupSuccessDays(1, false, true);
-            PersonalSuccessDays(1, 1, false, true);
-        }
-
-        [HarmonyPatch(typeof(StartOfRound))]
-        [HarmonyPatch("ResetShip")]
-        [HarmonyPostfix]
-        public static void ChangeStats() {
-            for (int i = 0; i < onlinePeoples; i++) {
-                StartOfRound.Instance.allPlayerScripts[i].sprintTime = 2.0f;
-                StartOfRound.Instance.allPlayerScripts[i].health = 40;
             }
         }
 
         [HarmonyPatch(typeof(PlayerControllerB))]
+        [HarmonyPatch("Update")]
+        [HarmonyPrefix]
+        public static void PlayerStats(ref float ___sprintTime) {
+            if (StartOfRound.Instance.connectedPlayersAmount > 0) {
+                ___sprintTime = Mathf.Max((2.0f + Group.TotalSuccessDays + PlayerPersonalStats.PersonalSuccessDays * 0.25f), 2.0f);
+            } else {
+                ___sprintTime = Mathf.Max((2.0f + Group.TotalSuccessDays * 0.25f), 2.0f);
+            }
+        }
+        [HarmonyPatch(typeof(PlayerControllerB))]
         [HarmonyPatch("DamagePlayer")]
         [HarmonyPrefix]
         public static void DealDamage(int damageNumber, bool hasDamageSFX = true, bool callRPC = true, CauseOfDeath causeOfDeath = CauseOfDeath.Unknown, int deathAnimation = 0, bool fallDamage = false, Vector3 force = default) {
-            for (int i = 0; i < onlinePeoples; i++) {
-                damageTaken[i] += damageNumber;
-                
-                PlayerStats stats = StartOfRound.Instance.gameStats.allPlayerStats[i];
-                PlayerControllerB scripts = StartOfRound.Instance.allPlayerScripts[i];
-                
-                int max = Mathf.Max(40 + (PersonalSuccessDays(0, i, false, false) * 5) + (GroupSuccessDays(0,false, false) * 5), 40);
-                
-                if (!stats.isActivePlayer || scripts.isPlayerDead || !scripts.AllowPlayerDeath()) {
-                    return;
-                }
+            PlayerPersonalStats.RoundDamage += damageNumber;
 
-                if (max - damageTaken[i] <= 0 && !scripts.criticallyInjured && damageNumber < 50) {
-                    scripts.health = 5;
+            PlayerStats stats = StartOfRound.Instance.gameStats.allPlayerStats[i];
+            PlayerControllerB scripts = StartOfRound.Instance.allPlayerScripts[i];
+
+            int max = Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40);
+            if (!stats.isActivePlayer || scripts.isPlayerDead || !scripts.AllowPlayerDeath()) {
+                return;
+            }
+
+            if (max - PlayerPersonalStats.RoundDamage <= 0 && !scripts.criticallyInjured && damageNumber < 50) {
+                scripts.health = 5;
+            } else {
+                scripts.health = Mathf.Clamp(max - PlayerPersonalStats.RoundDamage, 0, max);
+            }
+            HUDManager.Instance.SetCracksOnVisor(scripts.health);
+            HUDManager.Instance.UpdateHealthUI(scripts.health);
+            if (max - PlayerPersonalStats.RoundDamage <= 0) {
+                bool spawnBody = deathAnimation != -1;
+                PlayerPersonalStats.RoundDamage = 0;
+                scripts.KillPlayer(force, spawnBody, causeOfDeath, deathAnimation);
+            } else {
+                if (max - PlayerPersonalStats.RoundDamage < max / 3 && !scripts.criticallyInjured) {
+                    HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
+                    scripts.MakeCriticallyInjured(enable: true);
                 } else {
-                    scripts.health = Mathf.Clamp(max - damageTaken[i], 0, max);
-                }
-                HUDManager.Instance.SetCracksOnVisor(scripts.health);
-                HUDManager.Instance.UpdateHealthUI(scripts.health);
-                if (max - damageTaken[i] <= 0) {
-                    bool spawnBody = deathAnimation != -1;
-                    damageTaken[i] = 0;
-                    scripts.KillPlayer(force, spawnBody, causeOfDeath, deathAnimation);
-                } else {
-                    if (max - damageTaken[i] < max / 3 && !scripts.criticallyInjured) {
-                        HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
-                        scripts.MakeCriticallyInjured(enable: true);
-                    } else {
                     if (damageNumber >= 10) {
-                            scripts.sprintMeter = Mathf.Clamp(scripts.sprintMeter + (float)damageNumber / 125f, 0f, 1f);
+                        scripts.sprintMeter = Mathf.Clamp(scripts.sprintMeter + (float)damageNumber / 125f, 0f, 1f);
                     }
                     if (callRPC) {
                         if (NetworkManager.Singleton.IsServer) {
-                                scripts.DamagePlayerClientRpc(damageNumber, max - damageTaken[i]);
+                            scripts.DamagePlayerClientRpc(damageNumber, max - PlayerPersonalStats.RoundDamage);
                         } else {
-                                scripts.DamagePlayerServerRpc(damageNumber, max - damageTaken[i]);
+                            scripts.DamagePlayerServerRpc(damageNumber, max - PlayerPersonalStats.RoundDamage);
                         }
                     }
                 }
                 if (fallDamage) {
                     HUDManager.Instance.UIAudio.PlayOneShot(StartOfRound.Instance.fallDamageSFX, 1f);
                     WalkieTalkie.TransmitOneShotAudio(scripts.movementAudio, StartOfRound.Instance.fallDamageSFX);
-                        scripts.BreakLegsSFXClientRpc();
+                    scripts.BreakLegsSFXClientRpc();
                 } else if (hasDamageSFX) {
                     HUDManager.Instance.UIAudio.PlayOneShot(StartOfRound.Instance.damageSFX, 1f);
                 }
             }
             StartOfRound.Instance.LocalPlayerDamagedEvent.Invoke();
-                scripts.takingFallDamage = false;
+            scripts.takingFallDamage = false;
             if (!scripts.inSpecialInteractAnimation && !scripts.twoHandedAnimation) {
-                    scripts.playerBodyAnimator.SetTrigger("Damage");
+                scripts.playerBodyAnimator.SetTrigger("Damage");
             }
-                scripts.specialAnimationWeight = 1f;
-                scripts.PlayQuickSpecialAnimation(0.7f);
-            }
+            scripts.specialAnimationWeight = 1f;
+            scripts.PlayQuickSpecialAnimation(0.7f);
+            
         }
-    }
+    }    
 }
