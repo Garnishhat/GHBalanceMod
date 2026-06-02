@@ -49,6 +49,7 @@ namespace GHBalanceMod.Patches {
         [HarmonyPatch("WritePlayerNotes")]
         [HarmonyPrefix]
         public static void WriteNotes() {
+            PlayerPersonalStats.RoundDamage = 0;
             int AllOnlinePlayers = StartOfRound.Instance.allPlayerScripts.Length;
 
             PlayerStats[] stats = StartOfRound.Instance.gameStats.allPlayerStats;
@@ -60,9 +61,6 @@ namespace GHBalanceMod.Patches {
             bool highlyProfitable = StartOfRound.Instance.scrapCollectedLastRound >= GarnishHighScrapCount ||
             StartOfRound.Instance.scrapCollectedLastRound >= 30;
             // Number count also doesn't check to see if it's the actual amount you know, since there's a ton of different combinations and stuff
-
-
-
             if (profitable) {
                 if (highlyProfitable) {
                     if (StartOfRound.Instance.connectedPlayersAmount == 0) {
@@ -249,5 +247,14 @@ namespace GHBalanceMod.Patches {
             scripts.PlayQuickSpecialAnimation(0.7f);
             
         }
-    }    
+
+        [HarmonyPatch(typeof(StartOfRound))]
+        [HarmonyPatch("ResetShip")]
+        [HarmonyPostfix]
+        public static void Clear() {
+            PlayerPersonalStats.RoundDamage = 0;
+            PlayerPersonalStats.PersonalSuccessDays = 0;
+            Group.TotalSuccessDays = 0;
+        }
+    }
 }
