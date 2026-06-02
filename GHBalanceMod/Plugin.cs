@@ -36,7 +36,7 @@ namespace GHBalanceMod {
             harmony.PatchAll(typeof(PlayerStatsPatch));
             var settings = new ES3Settings(ES3.EncryptionType.AES, "Scribbles");
 
-            PlayerPersonalStats.PersonalSuccessDays = ES3.Load("PSD", 0, settings);
+            PlayerPersonalStats.PersonalSuccessDays = ES3.Load("PSD", new int[StartOfRound.Instance.allPlayerScripts.Length], settings);
             Group.TotalSuccessDays = ES3.Load("GSD", 0, settings);
         }
 
