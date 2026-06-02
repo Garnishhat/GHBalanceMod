@@ -197,8 +197,8 @@ namespace GHBalanceMod.Patches {
         public static void DealDamage(int damageNumber, bool hasDamageSFX = true, bool callRPC = true, CauseOfDeath causeOfDeath = CauseOfDeath.Unknown, int deathAnimation = 0, bool fallDamage = false, Vector3 force = default) {
             PlayerPersonalStats.RoundDamage += damageNumber;
 
-            PlayerStats stats = StartOfRound.Instance.gameStats.allPlayerStats[i];
-            PlayerControllerB scripts = StartOfRound.Instance.allPlayerScripts[i];
+            PlayerStats stats = StartOfRound.Instance.gameStats.allPlayerStats[StartOfRound.Instance.localPlayerController.playerClientId];
+            PlayerControllerB scripts = StartOfRound.Instance.allPlayerScripts[StartOfRound.Instance.localPlayerController.playerClientId];
 
             int max = Mathf.Max(40 + ((PlayerPersonalStats.PersonalSuccessDays + Group.TotalSuccessDays) * 5), 40);
             if (!stats.isActivePlayer || scripts.isPlayerDead || !scripts.AllowPlayerDeath()) {
