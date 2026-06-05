@@ -4,10 +4,12 @@ using GHBalanceMod.Patches;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static IngamePlayerSettings;
 
 namespace GHBalanceMod {
     
@@ -29,37 +31,13 @@ namespace GHBalanceMod {
             }
 
             LOGGER = BepInEx.Logging.Logger.CreateLogSource(modGUID);
-            LOGGER.LogInfo("GH Balanced has awoken!!");
-            
+            LOGGER.LogInfo("GH Balanced has awoken! Loading saved data...");
             harmony.PatchAll(typeof(BalanceModBase));
             // Initializes the default value
-            harmony.PatchAll(typeof(PlayerStatsPatch));
-            var settings = new ES3Settings(ES3.EncryptionType.AES, "Scribbles");
+            harmony.PatchAll(typeof(PlayerControllerPatches));
+            harmony.PatchAll(typeof(StartOfRoundPatches));
+            harmony.PatchAll(typeof(StartGameInjection));
 
-            PlayerPersonalStats.PersonalSuccessDays = ES3.Load("PSD", new int[StartOfRound.Instance.allPlayerScripts.Length], settings);
-            Group.TotalSuccessDays = ES3.Load("GSD", 0, settings);
         }
-
-        void OnApplicationQuit() {
-            ES3Settings settings = new ES3Settings(ES3.EncryptionType.AES, "Scribbles");
-            try {
-                ES3.Save("PSD", PlayerPersonalStats.PersonalSuccessDays, GameNetworkManager.Instance.currentSaveFileName, settings);
-                ES3.Save("GSD", Group.TotalSuccessDays, GameNetworkManager.Instance.currentSaveFileName, settings);
-            } catch (Exception arg) {
-                Debug.LogError($"ERROR while saving [REDACTED] on local client! : {arg}");
-            }
-        }
-        /*
-        File stuff:
-
-        
-        
-         */
-
-
-
-
-
-
     }
 }
