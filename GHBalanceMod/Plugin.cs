@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static IngamePlayerSettings;
 
 namespace GHBalanceMod {
     
@@ -17,7 +16,7 @@ namespace GHBalanceMod {
     public class BalanceModBase : BaseUnityPlugin {
         private const string modGUID = "GHBalanceMod";
         private const string modName = "GH Balance Mod";
-        private const string modVersion = "6.0.0";
+        private const string modVersion = "6.1.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
         
@@ -31,13 +30,13 @@ namespace GHBalanceMod {
             }
 
             LOGGER = BepInEx.Logging.Logger.CreateLogSource(modGUID);
-            LOGGER.LogInfo("GH Balanced has awoken! Loading saved data...");
+            LOGGER.LogInfo("GH Balanced has awoken!");
             harmony.PatchAll(typeof(BalanceModBase));
-            // Initializes the default value
-            harmony.PatchAll(typeof(PlayerControllerPatches));
-            harmony.PatchAll(typeof(StartOfRoundPatches));
-            harmony.PatchAll(typeof(StartGameInjection));
 
-        }
-    }
+			harmony.PatchAll(typeof(ScrapCounter));
+			harmony.PatchAll(typeof(PlayerNotes));
+			harmony.PatchAll(typeof(StartInjection));
+
+		}
+	}
 }
