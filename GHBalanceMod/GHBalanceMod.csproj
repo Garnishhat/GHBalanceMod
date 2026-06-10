@@ -31,7 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Patches\Handler.cs" />
+    <Compile Include="Patches\Challenge.cs" />
+    <Compile Include="Patches\Default.cs" />
+    <Compile Include="Patches\OverwrittenFiles.cs" />
     <Compile Include="Patches\Password.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
